@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">TtWt</string>
+    <string name="login_label">Connect with twitter</string>
+    <string name="title_activity_timeline">TimelineActivity</string>
+    <string name="msg_no_internet">Please connect to internet first</string>
+    <string name="hint_whats_happening">What\'s happening?</string>
+
+</resources>
