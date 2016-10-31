@@ -13,9 +13,14 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.codepath.apps.mysimpletweets.R;
+import com.codepath.apps.mysimpletweets.application.TwitterApplication;
 import com.codepath.apps.mysimpletweets.models.ExtendedEntities;
 import com.codepath.apps.mysimpletweets.models.Tweet;
+import com.codepath.apps.mysimpletweets.network.TwitterClient;
 import com.codepath.apps.mysimpletweets.utils.Utils;
+import com.loopj.android.http.JsonHttpResponseHandler;
+
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -23,7 +28,7 @@ import butterknife.BindDrawable;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import jp.wasabeef.glide.transformations.RoundedCornersTransformation;
+import cz.msebera.android.httpclient.Header;
 
 /**
  * Created by baphna on 10/27/2016.
@@ -34,8 +39,6 @@ public class TweetsArrayAdapter extends RecyclerView.Adapter<TweetsArrayAdapter.
     private Context mContext;
     private List<Tweet> tweets;
 
-    @BindDrawable(R.drawable.ic_star_golden_48dp)
-    Drawable icGoldStar;
 
     public TweetsArrayAdapter(Context mContext, List<Tweet> tweets) {
         this.mContext = mContext;
@@ -62,11 +65,13 @@ public class TweetsArrayAdapter extends RecyclerView.Adapter<TweetsArrayAdapter.
             holder.bntRetweetBy.setVisibility(View.GONE);
         } else{
             //TODO
+            //holder.btnRetweet.setCompoundDrawables(ic_retweet_blue, null, null, null);
         }
 
         if(tweet.isFavorited()){
-            holder.btnFav.setCompoundDrawables(icGoldStar, null, null, null);
+            //holder.btnFav.setCompoundDrawables(icGoldStar, null, null, null);
         }
+
 
         String profileImageUrl  = tweet.getUser().getProfileImageUrl();
         ExtendedEntities entities = tweet.getExtendedEntities();
@@ -87,6 +92,17 @@ public class TweetsArrayAdapter extends RecyclerView.Adapter<TweetsArrayAdapter.
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
+
+        @BindDrawable(R.drawable.ic_star_golden_24dp)
+        Drawable icGoldStar;
+        @BindDrawable(R.drawable.ic_star_golden_24dp)
+        Drawable ic_star_golden;
+        @BindDrawable(R.drawable.ic_star_border_grey_24dp)
+        Drawable ic_star_grey;
+        @BindDrawable(R.drawable.ic_retweet_grey_24dp)
+        Drawable ic_retweet_grey;
+        @BindDrawable(R.drawable.ic_retweet_blue_24dp)
+        Drawable ic_retweet_blue;
 
         @BindView(R.id.tvTweetBody)
         TextView tvTweetBody;
@@ -111,9 +127,8 @@ public class TweetsArrayAdapter extends RecyclerView.Adapter<TweetsArrayAdapter.
         @BindView(R.id.bntRetweetBy)
         Button bntRetweetBy;
 
-        @BindDrawable(R.drawable.ic_star_golden_48dp)
-        Drawable ic_star_golden;
 
+        //TODO: notify data change instead of changing UI directly
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -121,14 +136,49 @@ public class TweetsArrayAdapter extends RecyclerView.Adapter<TweetsArrayAdapter.
         }
 
         @OnClick(R.id.btnFav)
-        public void FavClicked(View view){
-            //TODO
-            if(tweets.get(getLayoutPosition()).isFavorited()){
-                btnFav.setCompoundDrawables(mContext.getDrawable(R.drawable.ic_star_border_grey_48dp), null, null, null);
+        public void FavClicked(final View view){
+            if(Utils.isNetworkAvailable(mContext.getApplicationContext())) {
+                TwitterClient client = TwitterApplication.getRestClient();
+                Tweet  tweet = tweets.get(getLayoutPosition());
+                final int count = tweets.get(getLayoutPosition()).getFavorite_count();
+                long id = tweet.getId();
+                if (tweet.isFavorited()) {
+                    //Already favorite..make un favorite
+                    client.postMakeUnFavorite(id, new JsonHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                            super.onSuccess(statusCode, headers, response);
+                            btnFav.setCompoundDrawablesWithIntrinsicBounds(ic_star_grey, null, null, null);
+                            //btnFav.setText(Integer.toString(count-1));
+                            tweets.get(getLayoutPosition()).setFavorited(false);
+                        }
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                            super.onFailure(statusCode, headers, responseString, throwable);
+                            Snackbar.make(view, responseString , Snackbar.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    client.postMakeFavorite(id, new JsonHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                            super.onSuccess(statusCode, headers, response);
+                            btnFav.setCompoundDrawablesWithIntrinsicBounds(ic_star_golden, null, null, null);
+                            btnFav.setText(Integer.toString(count+1));
+                            tweets.get(getLayoutPosition()).setFavorited(true);
+                        }
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                            super.onFailure(statusCode, headers, responseString, throwable);
+                            Snackbar.make(view, responseString , Snackbar.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+
+
             } else {
-                btnFav.setCompoundDrawables(mContext.getDrawable(R.drawable.ic_star_golden_48dp), null, null, null);
+                Snackbar.make(view, R.string.msg_no_internet, Snackbar.LENGTH_SHORT).show();
             }
-            Snackbar.make(view, R.string.msg_no_internet, Snackbar.LENGTH_SHORT).show();
         }
 
         @OnClick(R.id.btnReply)
@@ -139,9 +189,53 @@ public class TweetsArrayAdapter extends RecyclerView.Adapter<TweetsArrayAdapter.
         }
 
         @OnClick(R.id.btnRetweet)
-        public void ReTweetClicked(View view){
-            //TODO
-            Snackbar.make(view, R.string.msg_no_internet, Snackbar.LENGTH_SHORT).show();
+        public void ReTweetClicked(final View view){
+            if(Utils.isNetworkAvailable(mContext)) {
+                TwitterClient client = TwitterApplication.getRestClient();
+                final Tweet tweet = tweets.get(getLayoutPosition());
+                long id = tweet.getId();
+                final int currentCount = tweet.getFavorite_count();
+                if(tweet.isRetweeted()){
+                    //already retweeted
+                    client.postUnRetweet(id, new JsonHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                            super.onSuccess(statusCode, headers, response);
+
+                            btnRetweet.setCompoundDrawablesWithIntrinsicBounds(ic_retweet_grey, null, null, null);
+                            tweets.get(getLayoutPosition()).setRetweeted(false);
+                            //btnRetweet.setText(Integer.toString(currentCount-1));
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                            super.onFailure(statusCode, headers, responseString, throwable);
+                            Snackbar.make(view, responseString, Snackbar.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    //Not already retweeted
+                    client.postRetweet(id, new JsonHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
+                            super.onSuccess(statusCode, headers, response);
+
+                            btnRetweet.setCompoundDrawablesWithIntrinsicBounds(ic_retweet_blue, null, null, null);
+                            btnRetweet.setText(Integer.toString(currentCount+1));
+                            tweets.get(getLayoutPosition()).setRetweeted(true);
+
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                            super.onFailure(statusCode, headers, responseString, throwable);
+                            Snackbar.make(view, responseString, Snackbar.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            } else {
+                Snackbar.make(view, R.string.msg_no_internet, Snackbar.LENGTH_SHORT).show();
+            }
         }
     }
 }

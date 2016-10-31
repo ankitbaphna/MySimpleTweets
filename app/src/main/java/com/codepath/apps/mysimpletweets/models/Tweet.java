@@ -101,7 +101,7 @@ public class Tweet {
     */
 
     private String body;
-    private long uid;
+    private long id;
     private String createdAt;
     private boolean retweeted;
     private boolean favorited;
@@ -114,8 +114,8 @@ public class Tweet {
         return body;
     }
 
-    public long getUid() {
-        return uid;
+    public long getId() {
+        return id;
     }
 
     public String getCreatedAt() {
@@ -142,6 +142,22 @@ public class Tweet {
         return user;
     }
 
+    public void setRetweeted(boolean retweeted) {
+        this.retweeted = retweeted;
+    }
+
+    public void setFavorited(boolean favorited) {
+        this.favorited = favorited;
+    }
+
+    public void setFavorite_count(int favorite_count) {
+        this.favorite_count = favorite_count;
+    }
+
+    public void setRetweet_count(int retweet_count) {
+        this.retweet_count = retweet_count;
+    }
+
     public ExtendedEntities getExtendedEntities() {
         return extendedEntities;
     }
@@ -151,7 +167,7 @@ public class Tweet {
         try {
             tweet.createdAt = jsonObject.getString("created_at");
             tweet.body = jsonObject.getString("text");
-            tweet.uid = jsonObject.getLong("id");
+            tweet.id = jsonObject.getLong("id");
             tweet.user = User.fromJson(jsonObject.getJSONObject("user"));
             tweet.extendedEntities = ExtendedEntities.fromJson(jsonObject.getJSONObject("extended_entities"));
             tweet.favorited = jsonObject.getBoolean("favorited");

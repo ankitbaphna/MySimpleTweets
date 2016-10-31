@@ -17,11 +17,13 @@ import com.codepath.apps.mysimpletweets.fragments.NewTweetFragment;
 import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.network.TwitterClient;
 import com.codepath.apps.mysimpletweets.utils.DividerItemDecoration;
+import com.codepath.apps.mysimpletweets.utils.EndlessRecyclerViewScrollListener;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
 import org.json.JSONArray;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -41,6 +43,9 @@ public class TimelineActivity extends AppCompatActivity {
 
     @BindView(R.id.swipeContainer)
     SwipeRefreshLayout swipeContainer;
+    private EndlessRecyclerViewScrollListener scrollListener;
+
+    private long sinceId, maxId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +60,14 @@ public class TimelineActivity extends AppCompatActivity {
         staggeredLayoutManager = new StaggeredGridLayoutManager(1, StaggeredGridLayoutManager.VERTICAL);
         rvTweets.setLayoutManager(staggeredLayoutManager);
         rvTweets.setAdapter(tweetsArrayAdapter);
+        scrollListener = new EndlessRecyclerViewScrollListener(staggeredLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                // Triggered only when new data needs to be appended to the list
+                loadMoreData();
+            }
+        };
+        rvTweets.addOnScrollListener(scrollListener);
 
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -85,15 +98,41 @@ public class TimelineActivity extends AppCompatActivity {
         });
     }
 
+    private void loadMoreData() {
+        client.getNextTwitterHomeTimeline(maxId, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
+                super.onSuccess(statusCode, headers, response);
+                ArrayList<Tweet> newTweets = (ArrayList<Tweet>) Tweet.fromJsonArray(response);
+                tweets.addAll(newTweets);
+                tweetsArrayAdapter.notifyDataSetChanged();
+                swipeContainer.setRefreshing(false);
+                //maxId = newTweets.get(0).getId();
+                maxId = newTweets.get(newTweets.size()-1).getId();
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                super.onFailure(statusCode, headers, responseString, throwable);
+                Toast.makeText(getApplicationContext(), responseString, Toast.LENGTH_SHORT).show();
+                swipeContainer.setRefreshing(false);
+            }
+        });
+    }
+
     public void populateTimeline(){
         client.getTwitterHomeTimeline(new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONArray response) {
                 super.onSuccess(statusCode, headers, response);
                 tweets.clear();
-                tweets.addAll(Tweet.fromJsonArray(response));
+                Collection<Tweet> newTweets = Tweet.fromJsonArray(response);
+                tweets.addAll(newTweets);
                 tweetsArrayAdapter.notifyDataSetChanged();
                 swipeContainer.setRefreshing(false);
+                //maxId = tweets.get(0).getId();
+                maxId = tweets.get(tweets.size()-1).getId();
             }
 
             @Override

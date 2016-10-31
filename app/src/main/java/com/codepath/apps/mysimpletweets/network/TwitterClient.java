@@ -41,6 +41,16 @@ public class TwitterClient extends OAuthBaseClient {
         client.get(url, params, handler);
     }
 
+	public void getNextTwitterHomeTimeline(long maxId, AsyncHttpResponseHandler handler){
+        String url = getApiUrl("statuses/home_timeline.json");
+        RequestParams params = new RequestParams();
+        params.put("count", 25);
+        params.put("max_id", maxId-1);
+        //params.put("max_id",maxId );
+        params.put("include_entities", true);
+        client.get(url, params, handler);
+    }
+
 	public void postToTwitterHomeTimeline(String tweetBody, long replyToStatusId,
                                           AsyncHttpResponseHandler handler){
 		String url = getApiUrl("statuses/update.json");
@@ -51,6 +61,35 @@ public class TwitterClient extends OAuthBaseClient {
         }
 		client.post(url, params, handler);
 	}
+
+
+    public void postMakeFavorite(long id, AsyncHttpResponseHandler handler){
+        String url = getApiUrl("favorites/create.json");
+        RequestParams params = new RequestParams();
+        params.put("id", id);
+        client.post(url, params, handler);
+    }
+
+    public void postMakeUnFavorite(long id, AsyncHttpResponseHandler handler){
+        String url = getApiUrl("favorites/destroy.json");
+        RequestParams params = new RequestParams();
+        params.put("id", id);
+        client.post(url, params, handler);
+    }
+
+    public void postRetweet(long id, AsyncHttpResponseHandler handler){
+        String tweetId = String.valueOf(id);
+        String url = getApiUrl(String.format("statuses/retweet/%s.json", tweetId));
+        RequestParams params = new RequestParams();
+        client.post(url, params, handler);
+    }
+
+    public void postUnRetweet(long id, AsyncHttpResponseHandler handler){
+        String tweetId = String.valueOf(id);
+        String url = getApiUrl(String.format("statuses/unretweet/%s.json", tweetId));
+        RequestParams params = new RequestParams();
+        client.post(url, params, handler);
+    }
 	/* 1. Define the endpoint URL with getApiUrl and pass a relative path to the endpoint
 	 * 	  i.e getApiUrl("statuses/home_timeline.json");
 	 * 2. Define the parameters to pass to the request (query or body)
