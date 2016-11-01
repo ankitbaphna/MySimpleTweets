@@ -132,6 +132,7 @@ public class Tweet extends BaseModel implements Parcelable {
     @ForeignKey(saveForeignKeyModel = true)
     private ExtendedEntities extendedEntities;
 
+
     public void setBody(String body) {
         this.body = body;
     }
@@ -263,7 +264,7 @@ public class Tweet extends BaseModel implements Parcelable {
     public Tweet() {
     }
 
-    protected Tweet(Parcel in) {
+    public Tweet(Parcel in) {
         this.body = in.readString();
         this.id = in.readLong();
         this.createdAt = in.readString();

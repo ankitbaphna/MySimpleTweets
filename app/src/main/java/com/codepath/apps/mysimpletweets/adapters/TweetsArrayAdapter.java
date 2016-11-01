@@ -60,7 +60,11 @@ public class TweetsArrayAdapter extends RecyclerView.Adapter<TweetsArrayAdapter.
         holder.btnRetweet.setText(Integer.toString(tweet.getRetweet_count()));
         holder.btnFav.setText(Integer.toString(tweet.getFavorite_count()));
         holder.tvUserName.setText(tweet.getUser().getName());
-        holder.tvTweetTime.setText(Utils.getRelativeTimeAgo(tweet.getCreatedAt()));
+        if(tweet.getCreatedAt() != null) {
+            holder.tvTweetTime.setText(Utils.getRelativeTimeAgo(tweet.getCreatedAt()));
+        } else {
+            holder.tvTweetTime.setText("0s");
+        }
 
         if(!tweet.isRetweeted()){
             holder.bntRetweetBy.setVisibility(View.GONE);

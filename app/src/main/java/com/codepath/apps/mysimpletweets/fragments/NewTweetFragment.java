@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.codepath.apps.mysimpletweets.R;
 import com.codepath.apps.mysimpletweets.application.TwitterApplication;
+import com.codepath.apps.mysimpletweets.models.Tweet;
 import com.codepath.apps.mysimpletweets.network.TwitterClient;
 import com.codepath.apps.mysimpletweets.utils.Utils;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -49,6 +50,10 @@ public class NewTweetFragment extends DialogFragment {
     @BindView(R.id.tvUserName)
     TextView tvUserName;
 
+    public interface NewTweetPostedInterface{
+        void onNewTweetPosted(Tweet newTweet);
+    }
+
     public NewTweetFragment() {
     }
 
@@ -80,6 +85,9 @@ public class NewTweetFragment extends DialogFragment {
                         @Override
                         public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                             super.onSuccess(statusCode, headers, response);
+                            NewTweetPostedInterface newTweetPostedInterface = (NewTweetPostedInterface) getActivity();
+                            Tweet newTweet = Tweet.fromJson(response);
+                            newTweetPostedInterface.onNewTweetPosted(newTweet);
                             dismiss();
                         }
 

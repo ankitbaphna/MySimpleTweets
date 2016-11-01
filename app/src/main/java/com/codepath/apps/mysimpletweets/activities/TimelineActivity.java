@@ -33,7 +33,7 @@ import cz.msebera.android.httpclient.Header;
 
 import static com.codepath.apps.mysimpletweets.R.id.rvList;
 
-public class TimelineActivity extends AppCompatActivity {
+public class TimelineActivity extends AppCompatActivity implements NewTweetFragment.NewTweetPostedInterface{
 
     private TwitterClient client;
     private ArrayList<Tweet> tweets = new ArrayList<>();
@@ -126,4 +126,11 @@ public class TimelineActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onNewTweetPosted(Tweet newTweet) {
+        Log.d(Constants.TAG, "New tweeet added ");
+        tweets.add(0, newTweet);
+        tweetsArrayAdapter.notifyItemInserted(0);
+        rvTweets.scrollToPosition(0);
+    }
 }
