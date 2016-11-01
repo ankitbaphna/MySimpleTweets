@@ -1,6 +1,16 @@
 
 package com.codepath.apps.mysimpletweets.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.codepath.apps.mysimpletweets.database.TweetDatabase;
+import com.raizlabs.android.dbflow.annotation.Column;
+import com.raizlabs.android.dbflow.annotation.ForeignKey;
+import com.raizlabs.android.dbflow.annotation.PrimaryKey;
+import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.structure.BaseModel;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -8,8 +18,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collection;
 
-
-public class Tweet {
+@Table(database = TweetDatabase.class)
+public class Tweet extends BaseModel implements Parcelable {
 
    /* {
         "coordinates": null,
@@ -100,15 +110,47 @@ public class Tweet {
     },
     */
 
+    @Column
     private String body;
+    @Column
+    @PrimaryKey
     private long id;
+    @Column
     private String createdAt;
+    @Column
     private boolean retweeted;
+    @Column
     private boolean favorited;
+    @Column
+    @ForeignKey(saveForeignKeyModel = true)
     private User user;
+    @Column
     private int favorite_count;
+    @Column
     private int retweet_count;
+    @Column
+    @ForeignKey(saveForeignKeyModel = true)
     private ExtendedEntities extendedEntities;
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setExtendedEntities(ExtendedEntities extendedEntities) {
+        this.extendedEntities = extendedEntities;
+    }
 
     public String getBody() {
         return body;
@@ -169,14 +211,16 @@ public class Tweet {
             tweet.body = jsonObject.getString("text");
             tweet.id = jsonObject.getLong("id");
             tweet.user = User.fromJson(jsonObject.getJSONObject("user"));
-            tweet.extendedEntities = ExtendedEntities.fromJson(jsonObject.getJSONObject("extended_entities"));
             tweet.favorited = jsonObject.getBoolean("favorited");
             tweet.retweeted = jsonObject.getBoolean("retweeted");
             tweet.retweet_count = jsonObject.getInt("retweet_count");
             tweet.favorite_count = jsonObject.getInt("favorite_count");
+            //keep this in end for exception
+            tweet.extendedEntities = ExtendedEntities.fromJson(jsonObject.getJSONObject("extended_entities"));
         } catch (JSONException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
+        tweet.save();
         return tweet;
     }
 
@@ -196,4 +240,50 @@ public class Tweet {
         }
         return tweets;
     }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.body);
+        dest.writeLong(this.id);
+        dest.writeString(this.createdAt);
+        dest.writeByte(this.retweeted ? (byte) 1 : (byte) 0);
+        dest.writeByte(this.favorited ? (byte) 1 : (byte) 0);
+        dest.writeParcelable(this.user, flags);
+        dest.writeInt(this.favorite_count);
+        dest.writeInt(this.retweet_count);
+        dest.writeParcelable(this.extendedEntities, flags);
+    }
+
+    public Tweet() {
+    }
+
+    protected Tweet(Parcel in) {
+        this.body = in.readString();
+        this.id = in.readLong();
+        this.createdAt = in.readString();
+        this.retweeted = in.readByte() != 0;
+        this.favorited = in.readByte() != 0;
+        this.user = in.readParcelable(User.class.getClassLoader());
+        this.favorite_count = in.readInt();
+        this.retweet_count = in.readInt();
+        this.extendedEntities = in.readParcelable(ExtendedEntities.class.getClassLoader());
+    }
+
+    public static final Parcelable.Creator<Tweet> CREATOR = new Parcelable.Creator<Tweet>() {
+        @Override
+        public Tweet createFromParcel(Parcel source) {
+            return new Tweet(source);
+        }
+
+        @Override
+        public Tweet[] newArray(int size) {
+            return new Tweet[size];
+        }
+    };
 }

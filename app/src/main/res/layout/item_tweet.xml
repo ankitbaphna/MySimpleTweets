@@ -9,7 +9,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/ic_launcher"
+        app:srcCompat="@mipmap/ic_launcher"
         android:id="@+id/bntRetweetBy"
         android:textStyle="normal"
         android:layout_alignParentTop="true"
@@ -69,7 +69,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/ic_launcher"
+        app:srcCompat="@mipmap/ic_launcher"
         android:id="@+id/btnReply"
         android:drawableLeft="@drawable/ic_reply_grey_24dp"
         android:drawableStart="@drawable/ic_reply_grey_24dp"
@@ -82,7 +82,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/ic_launcher"
+        app:srcCompat="@mipmap/ic_launcher"
         android:id="@+id/btnFav"
         android:background="@android:color/transparent"
         android:textStyle="normal"
@@ -96,7 +96,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/ic_launcher"
+        app:srcCompat="@mipmap/ic_launcher"
         android:id="@+id/btnRetweet"
         android:background="@android:color/transparent"
         android:textStyle="normal"

@@ -53,6 +53,7 @@ public class TweetsArrayAdapter extends RecyclerView.Adapter<TweetsArrayAdapter.
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+
         Tweet tweet = tweets.get(position);
         holder.tvUserHandle.setText("@"+tweet.getUser().getProfileName());
         holder.tvTweetBody.setText(tweet.getBody());
@@ -65,11 +66,11 @@ public class TweetsArrayAdapter extends RecyclerView.Adapter<TweetsArrayAdapter.
             holder.bntRetweetBy.setVisibility(View.GONE);
         } else{
             //TODO
-            //holder.btnRetweet.setCompoundDrawables(ic_retweet_blue, null, null, null);
+            holder.btnRetweet.setCompoundDrawablesWithIntrinsicBounds(mContext.getDrawable(R.drawable.ic_retweet_blue_24dp), null, null, null);
         }
 
         if(tweet.isFavorited()){
-            //holder.btnFav.setCompoundDrawables(icGoldStar, null, null, null);
+            holder.btnFav.setCompoundDrawablesWithIntrinsicBounds(mContext.getDrawable(R.drawable.ic_star_golden_24dp), null, null, null);
         }
 
 
